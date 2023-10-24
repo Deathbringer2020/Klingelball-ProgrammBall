@@ -41,7 +41,7 @@
         }
     };
 
-
+  int xValue[8], yValue[8], zValue[8];
 
 void setup() {
   // put your setup code here, to run once:
@@ -50,7 +50,7 @@ void setup() {
 
   // Bluetooth Setup 
 
-    int xValue[], yValue[], zValue[];
+    
 
     Serial.println("Starting BLE work!");
 
@@ -116,10 +116,12 @@ void loop() {
 
       Serial.println("Hi"); 
       
-      xValue[] = xString.toInt();
+
+/*
+      xValue[] = xString.toInt(); //konvertierung der Strings aus Bluetooth in int arrays
       yValue[] = yString.toInt();
       zValue[] = zString.toInt();
-
+*/
 
     }
 
@@ -143,9 +145,6 @@ void loop() {
 
   // Akkustand
 
-
-//hallo 
-
-
+ 
 
 }
