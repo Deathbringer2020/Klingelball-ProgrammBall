@@ -13,9 +13,9 @@
 
 BLEService pService("SERVICE_UUID"); 
 
-BLEIntCharacteristic xCharacteristic("CHARACTERISTIC_UUID", BLEBroadcast| BLERead | BLEWrite); 
-BLEIntCharacteristic yCharacteristic("CHARACTERISTIC_UUID", BLERead | BLEWriteWithoutResponse); 
-BLEIntCharacteristic zCharacteristic("CHARACTERISTIC_UUID", BLERead | BLEWrite); 
+BLEUnsignedIntCharacteristic xCharacteristic("CHARACTERISTIC_UUID", BLEBroadcast| BLERead | BLEWrite); 
+BLEUnsignedIntCharacteristic yCharacteristic("CHARACTERISTIC_UUID", BLEBroadcast | BLERead | BLEWriteWithoutResponse); 
+BLEUnsignedIntCharacteristic zCharacteristic("CHARACTERISTIC_UUID", BLEBroadcast | BLERead | BLEWrite); 
 
 
 
@@ -31,23 +31,25 @@ void setup() {
   }
 
 
- // BLE.setLocalName("Klingelball");
-  //BLE.setDeviceName("Klingelball");
+  BLE.setLocalName("Klingelball");
+  BLE.setDeviceName("Klingelball");
 
-  BLE.addService(pService);
   BLE.setAdvertisedService(pService);
 
   pService.addCharacteristic(xCharacteristic);
   xCharacteristic.setValue(001);
 
   pService.addCharacteristic(yCharacteristic);
-  yCharacteristic.setValue(010);
+  yCharacteristic.setValue(10);   //es darf keine null vor der zahl stehen dann wird es nähmlich ein anderer wert
 
   pService.addCharacteristic(zCharacteristic);
   zCharacteristic.setValue(100);
 
-
+  BLE.addService(pService);
   BLE.advertise();
+  xCharacteristic.broadcast();
+  yCharacteristic.broadcast();
+  zCharacteristic.broadcast();
 
 
 }
@@ -57,37 +59,32 @@ void loop() {
 
   BLE.poll(); // weiß nicht 
 
+
   Serial.println("Test");
   delay(2000);
   BLE.stopAdvertise();//damit es immer neustartet es beendet sich selbst sonst
   BLE.advertise();
   if(BLE.connected()){
     
-    int BallAn = xCharacteristic.value();
-    Serial.println(BallAn);
+
+    int xCharact = xCharacteristic.value();
+    int yCharact = yCharacteristic.value();
+    int zCharact = zCharacteristic.value();
+
+    Serial.println("Characteristics: ");
+    Serial.print("X: ");
+    Serial.println(xCharact);
+    Serial.print("Y: ");
+    Serial.println(yCharact);
+    Serial.print("Z: ");
+    Serial.println(zCharact);
 
     Serial.println("Hi"); 
 
 
-    
   }
   Serial.println("ende");
-//pCharacteristic->getValue();
-  //BallAn = pCharacteristic->getValue();
-  
- // Lautstärke = pCharacheristic2->getValue();
-//  LEDs = pCharacheristic3->getValue();
 
- // Serial.println(BallAn);
- // Serial.println(Lautstärke);
- 
+
 
 }
-
-
-
-
-
-
-
-
