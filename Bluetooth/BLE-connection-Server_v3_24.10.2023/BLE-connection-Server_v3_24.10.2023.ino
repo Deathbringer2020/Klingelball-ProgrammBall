@@ -13,9 +13,9 @@
 
 BLEService pService("SERVICE_UUID"); 
 
-BLEUnsignedIntCharacteristic xCharacteristic("CHARACTERISTIC_UUID", BLEBroadcast| BLERead | BLEWrite); 
-BLEUnsignedIntCharacteristic yCharacteristic("CHARACTERISTIC_UUID", BLEBroadcast | BLERead | BLEWriteWithoutResponse); 
-BLEUnsignedIntCharacteristic zCharacteristic("CHARACTERISTIC_UUID", BLEBroadcast | BLERead | BLEWrite); 
+BLEUnsignedIntCharacteristic xCharacteristic("CHARACTERISTIC_UUID", BLEBroadcast | BLERead | BLEWrite); 
+BLEUnsignedIntCharacteristic yCharacteristic("CHARACTERISTIC2_UUID", BLEBroadcast | BLERead | BLEWriteWithoutResponse); 
+BLEUnsignedIntCharacteristic zCharacteristic("CHARACTERISTIC3_UUID", BLEBroadcast | BLERead | BLEWrite); 
 
 
 
@@ -84,7 +84,6 @@ void loop() {
 
   }
   Serial.println("ende");
-
 
 
 }
