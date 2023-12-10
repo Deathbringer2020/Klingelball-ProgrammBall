@@ -14,8 +14,8 @@
 BLEService pService(SERVICE_UUID); 
 
 BLEUnsignedIntCharacteristic xCharacteristic(CHARACTERISTIC_UUID, BLEBroadcast | BLERead | BLEWrite); 
-/*BLEUnsignedIntCharacteristic yCharacteristic(CHARACTERISTIC2_UUID, BLEBroadcast, BLERead, BLEWriteWithoutResponse); 
-BLEUnsignedIntCharacteristic zCharacteristic(CHARACTERISTIC3_UUID, BLEBroadcast | BLERead | BLEWrite); */
+BLEUnsignedIntCharacteristic yCharacteristic(CHARACTERISTIC2_UUID, BLEBroadcast | BLERead | BLEWriteWithoutResponse); 
+BLEUnsignedIntCharacteristic zCharacteristic(CHARACTERISTIC3_UUID, BLEBroadcast | BLERead | BLEWrite); 
 
 
 
@@ -32,9 +32,12 @@ void setup() {
 
 
   BLE.setLocalName("Klingelball");
-  BLE.setDeviceName("Klingelball");
+//  BLE.setDeviceName("Klingelball");
   
-  
+  BLE.setAdvertisedService(pService);
+  pService.addCharacteristic(xCharacteristic);  //muss hier sein sonst funktioniert es nicht
+  pService.addCharacteristic(yCharacteristic);
+  pService.addCharacteristic(zCharacteristic);
   BLE.addService(pService);
 
 //  BLE.setConnectable(true); //zur sicherheit, sollte von selbst true sein 
@@ -42,25 +45,25 @@ void setup() {
 //  BLE.setAdvertisedServiceUuid(SERVICE_UUID );
   BLE.setAppearance(0x80);
 
-  pService.addCharacteristic(xCharacteristic);
-  xCharacteristic.setValue(27);
+  
+  xCharacteristic.writeValue(27);
 
 
-/*
-  pService.addCharacteristic(yCharacteristic);
+
+  
   yCharacteristic.setValue(10);   //es darf keine null vor der zahl stehen dann wird es nähmlich ein anderer wert
 
-  pService.addCharacteristic(zCharacteristic);
+  
   zCharacteristic.setValue(2830430038);
-*/
+
 
   if (!xCharacteristic.broadcast()) {
     Serial.println("broadcast failed!");
 
     while (1);
   }
-  /*yCharacteristic.broadcast();
-  zCharacteristic.broadcast(); */
+  yCharacteristic.broadcast();
+  zCharacteristic.broadcast(); 
   BLE.advertise();
 
 }
@@ -87,8 +90,8 @@ void loop() {
   }
 */
     int xCharact = xCharacteristic.value();
-   /* int yCharact = yCharacteristic.value();
-    int64_t zCharact = zCharacteristic.value();*/
+    int yCharact = yCharacteristic.value();
+    int64_t zCharact = zCharacteristic.value();
 
     Serial.print("Service: ");
     Serial.println(pService.uuid());
@@ -98,10 +101,10 @@ void loop() {
     Serial.println("Characteristics: ");
     Serial.print("X: ");
     Serial.println(xCharact);
-    /*Serial.print("Y: ");
+    Serial.print("Y: ");
     Serial.println(yCharact);
     Serial.print("Z: ");
-    Serial.println(zCharact);*/
+    Serial.println(zCharact);
 
     Serial.print("Lengh: ");
     Serial.println(xCharacteristic.valueLength());
