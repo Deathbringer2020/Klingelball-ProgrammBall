@@ -1,3 +1,5 @@
+#define delay1 100
+
 void setup(){
 
   ledcSetup(0, 5000, 8);
@@ -20,11 +22,12 @@ void loop(){
    ledcWrite(0, 255);
   delay(5000);
 */
-ledcWriteTone(0, 3000); // frequenz einstellen 
-for(int i = 0; i <= 300; i++ ){
-  ledcWrite(0, i); // lautstärke einstellen (0 bis 255)
-  delay(200);
-}
+  ledcWriteTone(0, 1500); // frequenz einstellen 
+
+  ledcWrite(0, 255); // lautstärke einstellen (0 bis 255)
+  delay(delay1);
+  ledcWrite(0, 0);
+  delay(delay1);
 
 
 
