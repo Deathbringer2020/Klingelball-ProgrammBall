@@ -18,13 +18,19 @@ int pruefziffer(){
   int pruef = 0; 
 
   for(int i = 1; i <= valuelenght; i++){  //prüfziffer berechnen
+
     if(i % 2){
       pruef += BLEEingabeArray[i] * 3;
+
     } else{ //gerade
       pruef += BLEEingabeArray[i] * 1;
-    }
 
+    }
   }
+
+  pruef = 10 - (pruef % 10); 
+
+  
   return pruef
 }
 

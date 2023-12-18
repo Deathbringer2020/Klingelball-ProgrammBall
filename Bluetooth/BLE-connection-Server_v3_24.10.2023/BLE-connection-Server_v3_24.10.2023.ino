@@ -32,7 +32,7 @@ void setup() {
 
 
   BLE.setLocalName("Klingelball");
-//  BLE.setDeviceName("Klingelball");
+  BLE.setDeviceName("Klingelball");
   
   BLE.setAdvertisedService(pService);
   pService.addCharacteristic(xCharacteristic);  //muss hier sein sonst funktioniert es nicht
@@ -48,13 +48,9 @@ void setup() {
   
   xCharacteristic.writeValue(27);
 
-
-
-  
   yCharacteristic.setValue(10);   //es darf keine null vor der zahl stehen dann wird es nähmlich ein anderer wert
-
   
-  zCharacteristic.setValue(2830430038);
+  zCharacteristic.setValue(0);
 
 
   if (!xCharacteristic.broadcast()) {
