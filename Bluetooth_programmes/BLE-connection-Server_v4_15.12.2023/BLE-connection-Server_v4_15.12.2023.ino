@@ -1,6 +1,8 @@
 
 
 #include <ArduinoBLE.h>
+#include <math.h> 
+#include <Arduino.h>
 
 
 
@@ -23,14 +25,13 @@ unsigned long myTime = 0;
 //BLE eingabe werte 
   unsigned long xCharact = 0;
   unsigned long yCharact = 0;
-  int xChAr[10] = {0,0,0,0,0,0,0,0,0,0};
+ // int xChAr[10] = {0,0,0,0,0,0,0,0,0,0};
   int aByteZ = 0;
   int aByteAr[3] = {0,0,0};
   int bByte = 0;
   int cByte = 0;
   int dByte = 0;
   int pruefziffer = 0;
-
 
 //
 
@@ -66,7 +67,7 @@ void setup() {
 
 
   BLE.advertise();
-
+ 
 }
 
 void loop() {
@@ -93,12 +94,13 @@ void loop() {
     }
 
    //eingabe in Array speichern
-    for(int i = 0; i <= 9; i++){
+  /*  for(int i = 0; i <= 9; i++){
       
       xChAr[i] = xCharact % 10; 
       xCharact = xCharact / 10;
 
     }
+  */
 
    //die einzelnen bytes in array und Varbiablen speichern
     aByteZ = xCharact & 0xFF;
@@ -112,7 +114,7 @@ void loop() {
 
 
    //Prüfziffer berechnen 
-    for(int i = 1; i <= 9; i++){  //prüfziffer berechnen
+ /*   for(int i = 1; i <= 9; i++){  //prüfziffer berechnen
 
       if(i % 2){
         pruefziffer += xChAr[i] * 3;
@@ -121,10 +123,17 @@ void loop() {
         pruefziffer += xChAr[i] * 1;
 
       }
-    }
-    pruefziffer = 10 - (pruefziffer % 10); 
+    }*/
 
-    
+    pruefziffer += bByte * 3;
+    pruefziffer += cByte * 1;
+    pruefziffer += dByte * 3;
+     
+
+    pruefziffer = 9 - (pruefziffer % 10); 
+
+    Serial.print("Pruefziffer: ");
+    Serial.println(pruefziffer);
 
    //überprüfung 
     if(aByteAr[0] == pruefziffer){
@@ -160,8 +169,12 @@ void loop() {
     Serial.println(yCharact);
 
     //Byte auslesen test
-    Serial.println("Bytes: ");
-    Serial.print("a: "); 
+    Serial.print("a.0: "); 
+    Serial.println(aByteAr[0]);
+    Serial.print("a.1: "); 
+    Serial.println(aByteAr[1]);
+    Serial.print("a.2: "); 
+    Serial.println(aByteAr[2]);
     Serial.println(aByteZ);
     Serial.print("b: "); 
     Serial.println(bByte);
@@ -169,6 +182,8 @@ void loop() {
     Serial.println(cByte);
     Serial.print("d: "); 
     Serial.println(dByte);
+
+     
 
   }
   }
