@@ -8,10 +8,10 @@ Adafruit_NeoPixel pixels(NUMPIXELS, PIN, NEO_GRB + NEO_KHZ800);
 
 
 void setup() {
-  pinMode(32, OUTPUT);
+  pinMode(1, OUTPUT);
   pixels.begin();
   pixels.clear();
-  tone(32, 300);
+  tone(1, 300);
 }
 
 void loop() {

@@ -36,6 +36,27 @@ unsigned long myTime = 0;
 //
 
 
+
+
+  int Volume = 0;
+  int FreqStill = 0;
+  int FreqMov = 0;
+  bool Beep = 0;         // on/off
+  int BeepStill = 0;
+  int BeepMov = 0;
+  int LEDRedStill = 0;
+  int LEDGreenStill = 0;
+  int LEDBlueStill = 0;
+  int LEDRedMov = 0;
+  int LEDGreenMov = 0;
+  int LEDBlueMov = 0;
+  int Brightness = 0;
+  int LEDFlashing = 0;
+  int LEDFlashFreq = 0;
+
+
+
+
 void setup() {
   Serial.begin(115200);
   Serial.println("Starting BLE work!");
@@ -143,14 +164,51 @@ void loop() {
       switch((aByteAr[2]*10 + aByteAr[1])){
         default:
           Serial.println("Switch Error");
+
+          break; 
+        case 0: 
+
+          if(bByte == 1){
+ //           state = OffMode; 
+          }else{
+  //          state = BLE;
+          }
+
+
           break; 
         case 1:
-          
+
+          Volume = bByte;
+          FreqStill = cByte;
+          FreqMov = dByte;
+
           break;
         case 2:
           
+          Beep = bByte;         // on/off
+          BeepStill = cByte;
+          BeepMov = dByte;
+
           break;
-        case 24:
+        case 3:
+
+          LEDRedStill = bByte;
+          LEDGreenStill = cByte;
+          LEDBlueStill = dByte;
+
+          break;
+        case 4:
+
+          LEDRedMov = bByte;
+          LEDGreenMov = cByte;
+          LEDBlueMov = dByte;
+
+          break;
+        case 5:
+
+          Brightness = bByte;
+          LEDFlashing = cByte;
+          LEDFlashFreq = dByte;
 
           break;
       }
