@@ -26,7 +26,7 @@ void loop(){
 
   ledcWrite(0, 255); // lautstärke einstellen (0 bis 255)
   delay(delay1);
-  ledcWrite(0, 0);
+  ledcWrite(0, 100);
   delay(delay1);
 
 

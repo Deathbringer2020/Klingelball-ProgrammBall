@@ -10,7 +10,15 @@
  //LED Include
   #include <Adafruit_NeoPixel.h>
 
- //
+ //Tone Include
+  #if !( ARDUINO_ARCH_NRF52840 && TARGET_NAME == ARDUINO_NANO33BLE )
+  #error This code is designed to run on nRF52-based Nano-33-BLE boards using mbed-RTOS platform! Please check your Tools->Board setting.
+  #endif
+
+  #define _PWM_LOGLEVEL_       1
+  // To be included only in main(), .ino with setup() to avoid `Multiple Definitions` Linker Error
+  #include "nRF52_MBED_PWM.h" 
+
 
 
 
@@ -37,11 +45,7 @@
   Adafruit_NeoPixel LEDs(NUMLEDs, LEDPIN, NEO_GRB + NEO_KHZ800);
 
  //Tone Defines 
- // #define Tone_Pin 10
-  #define Volume_Pin 5
-  #define ToneUebertroagung1_Pin 6
-  #define ToneUebertroagung2_Pin 7
-  #define BeepUebertroagung_Pin 8
+  uint32_t Tone_Pin  = D3;
 
  //Akku Defines
   #define AkkuRead_Pin A1
@@ -84,10 +88,13 @@
   float accx, accy, accz, accsum;
   
  //Ton Variablen 
-  int Freq, BeepSound; 
-  byte aFreqByte;
-  byte bFreqByte;
-   
+  float dutyCycle = 50.0f;
+  float freq      = 800.0f;
+  mbed::PwmOut* pwm   = NULL;
+  bool ToneToggle = 0;
+  unsigned long ToneTime = 0;
+  int BeepSound;
+
  //LED Variablen 
   int LEDRed, LEDGreen, LEDBlue;
   unsigned long LEDFlashTime; 
@@ -149,13 +156,10 @@ void setup() {
    //LED Pins
    
    //Ton Pins
+    
+    setPWM(pwm, Tone_Pin, freq, dutyCycle);
+    pinMode(Tone_Pin, OUTPUT);
 
-
-  /*  pinMode(Volume_Pin, OUTPUT); //nur mit 2 autputs programmieren einer gibt aus welcher und der andere den wert
-    pinMode(ToneUebertroagung1_Pin, OUTPUT);
-    pinMode(ToneUebertroagung2_Pin, OUTPUT);    
-    pinMode(BeepUebertroagung_Pin, OUTPUT);
-  */
    //Akku Pins
     pinMode(AkkuRead_Pin, INPUT);
 
@@ -292,21 +296,27 @@ void loop() {
 
     case Ton: // Anpassung Ton 
 
+      dutyCycle = Volume; //geht int to float ? 
+      freq = map(accsum, 0, 4, FreqStill*70, FreqMov*70);
+      BeepSound = map(accsum, 0, 4, BeepStill, BeepMov);
+      if(BeepSound == 0){
+        setPWM(pwm, Tone_Pin, freq, dutyCycle);//starts tone        
+      }else{
+        if(millis() > ToneTime + BeepSound*10){
+          ToneTime = millis();
+          switch(ToneToggle){
+            case 0: 
+            setPWM(pwm, Tone_Pin, freq, dutyCycle);//starts tone
+            break;
+            case 1: 
+            stopPWM(pwm, Tone_Pin);  //stops tone
+            break; 
+          }
+          ToneToggle != ToneToggle; 
+        }
+      }
+  
 
-    
-       /*
-      analogWrite(Volume_Pin, Volume);
-      
-      Freq = map(accsum, 0, 4, FreqStill*70, FreqMov*70);
-      bFreqByte = Freq;
-      aFreqByte = (Freq >> 8);
-      analogWrite(ToneUebertroagung1_Pin, aFreqByte);
-      analogWrite(ToneUebertroagung2_Pin, bFreqByte);
-
-      BeepSound = map(accsum, 0, 4, BeepStill, BeepMov); //in ms converter noch 
-      analogWrite(BeepUebertroagung_Pin, BeepSound);
-
-      */
       state = LED;
     break;
 
