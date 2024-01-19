@@ -40,7 +40,7 @@
 
  //LED Defines
   #define LEDPIN  4
-  #define NUMLEDs 4
+  #define NUMLEDs 5
 
   Adafruit_NeoPixel LEDs(NUMLEDs, LEDPIN, NEO_GRB + NEO_KHZ800);
 
@@ -59,27 +59,27 @@
 
   //BLE eingabe werte 
     unsigned long xCharact = 0;
-    byte aByteZ = 0;
+    uint8_t aByteZ = 0;
     byte aByteAr[3] = {0,0,0};
     byte bByte = 0;
     byte cByte = 0;
     byte dByte = 0;
-    unsigned long pruefziffer = 0;
+    unsigned int pruefziffer = 0;
 
  //Berechungs Bariablen 
   
-  byte Volume = 0;
-  byte FreqStill = 0;
-  byte FreqMov = 0;
+  byte Volume = 100;
+  byte FreqStill = 20;
+  byte FreqMov = 200;
   bool Beep = 0;         // on/off
-  byte BeepStill = 0;
+  byte BeepStill = 70;
   byte BeepMov = 0;
   byte LEDRedStill = 255;
-  byte LEDGreenStill = 0;
+  byte LEDGreenStill = 255;
   byte LEDBlueStill = 0;
   byte LEDRedMov = 0;
-  byte LEDGreenMov = 255;
-  byte LEDBlueMov = 0;
+  byte LEDGreenMov = 0;
+  byte LEDBlueMov = 255;
   byte Brightness = 100;
   bool LEDFlashing = 0;
   byte LEDFlashFreq = 0;
@@ -105,7 +105,7 @@
   int Akkuvalue = 0;  
   byte Akkuprocent = 0; 
   byte bAkkuByte = 0; 
-  int AkkuPruefziffer = 0;
+  unsigned int AkkuPruefziffer = 0;
   byte aAkkuByte = 0;
   unsigned long AkkuValue = 0;
 
@@ -184,7 +184,7 @@ void loop() {
         xCharact = xCharacteristic.value();
       
        //die einzelnen bytes in array und Varbiablen speichern
-        aByteZ = xCharact & 0xFF;
+        aByteZ = xCharact;
         for(int i = 0; i <= 2; i++){  
           aByteAr[i] = aByteZ % 10; 
           aByteZ = aByteZ / 10;
@@ -196,82 +196,89 @@ void loop() {
 
        //Prüfziffer berechnen 
         pruefziffer = 0;
-        pruefziffer += bByte * 3;
-        pruefziffer += cByte * 1;
-        pruefziffer += dByte * 3;
+        pruefziffer += bByte * 1;
+        pruefziffer += cByte * 3;
+        pruefziffer += dByte * 1;
         
 
         pruefziffer = 9 - (pruefziffer % 10); 
 
        //überprüfung 
-        if(aByteAr[0] == pruefziffer){
-          
-        //Switch Welche eingabe 
+        if(xCharact > 3){
+         // Serial.println("Wert einlesen");
 
-          switch((aByteAr[2]*10 + aByteAr[1])){
-            default:
-              Serial.println("Switch Error");
+          if(aByteAr[0] == pruefziffer){
+            
+          //Switch Welche eingabe 
+
+            switch((aByteAr[2]*10 + aByteAr[1])){
+              default:
+                Serial.println("Switch Error");
               break; 
-            case 0: 
+              case 0: 
 
-              if(bByte == 0){
-                state = OffMode; 
-              }else{
-                state = Bluetooth;
-              }
-
+                if(bByte == 0){
+                  state = OffMode; 
+                  Serial.println("0");
+                }else{
+                  state = Bluetooth;
+                  Serial.println("1");
+                }
 
               break; 
-            case 1:
+              case 1:
 
-              Volume = bByte;
-              FreqStill = cByte;
-              FreqMov = dByte;
-
-              break;
-            case 2:
-              
-              Beep = bByte;         // on/off
-              BeepStill = cByte;
-              BeepMov = dByte;
+                Volume = bByte;
+                FreqStill = cByte;
+                FreqMov = dByte;
 
               break;
-            case 3:
-
-              LEDRedStill = bByte;
-              LEDGreenStill = cByte;
-              LEDBlueStill = dByte;
-
-              break;
-            case 4:
-
-              LEDRedMov = bByte;
-              LEDGreenMov = cByte;
-              LEDBlueMov = dByte;
+              case 2:
+                
+                Beep = bByte;         // on/off
+                BeepStill = cByte;
+                BeepMov = dByte;
 
               break;
-            case 5:
+              case 3:
 
-              Brightness = bByte;
-              LEDFlashing = cByte;
-              LEDFlashFreq = dByte;
+                LEDRedStill = bByte;
+                LEDGreenStill = cByte;
+                LEDBlueStill = dByte;
 
               break;
+              case 4:
+
+                LEDRedMov = bByte;
+                LEDGreenMov = cByte;
+                LEDBlueMov = dByte;
+
+              break;
+              case 5:
+
+                Brightness = bByte;
+                LEDFlashing = cByte;
+                LEDFlashFreq = dByte;
+
+              break;
+            }
+
+            xCharacteristic.setValue(1);
+            //Serial.println("Pruefziffer richtig");
+          }else{
+            Serial.println("Pruefziffer falsch");
+            xCharacteristic.setValue(2);
+
+
           }
-
-          xCharacteristic.setValue(1);
-
-        }else{
-          Serial.println("Pruefziffer falsch");
-          xCharacteristic.setValue(2);
-
-
         }
         
       }
 
 
-      state = Sensor;
+      if(state < 5){
+        state = Sensor;
+      }
     break; 
 
 
@@ -296,26 +303,36 @@ void loop() {
 
     case Ton: // Anpassung Ton 
 
-      dutyCycle = Volume; //geht int to float ? 
-      freq = map(accsum, 0, 4, FreqStill*70, FreqMov*70);
+      dutyCycle = Volume -1; //geht int to float ? 
+      freq = map(accsum, 0, 4, FreqStill*70, FreqMov*70) +31;
       BeepSound = map(accsum, 0, 4, BeepStill, BeepMov);
-      if(BeepSound == 0){
-        setPWM(pwm, Tone_Pin, freq, dutyCycle);//starts tone        
-      }else{
-        if(millis() > ToneTime + BeepSound*10){
-          ToneTime = millis();
-          switch(ToneToggle){
-            case 0: 
-            setPWM(pwm, Tone_Pin, freq, dutyCycle);//starts tone
-            break;
-            case 1: 
-            stopPWM(pwm, Tone_Pin);  //stops tone
-            break; 
+      if(dutyCycle >= 1){
+        if(BeepSound <= 1){
+          setPWM(pwm, Tone_Pin, freq, dutyCycle);//starts tone   
+          Serial.println("error");
+
+        }else{
+          if(millis() > (ToneTime + BeepSound*25)){
+            ToneTime = millis();
+            Serial.print("Beep: ");
+            switch(ToneToggle){
+              case 0: 
+              setPWM(pwm, Tone_Pin, freq, dutyCycle);//starts tone
+              Serial.println("0");
+
+              break;
+              case 1: 
+              stopPWM(pwm, Tone_Pin);  //stops tone
+              Serial.println("1");
+              break; 
+            }
+            ToneToggle = !ToneToggle; 
           }
-          ToneToggle != ToneToggle; 
         }
+      }else{
+        stopPWM(pwm, Tone_Pin);  //stops tone
       }
-  
+      
 
       state = LED;
     break;
@@ -333,7 +350,7 @@ void loop() {
         if(millis() >= LEDFlashTime + LEDFlashFreq * 1){
           LEDFlashOF = !LEDFlashOF;
           if(LEDFlashOF){
-            LEDs.fill(LEDs.Color(LEDRed, LEDGreen, LEDBlue), 0, 4);
+            LEDs.fill(LEDs.Color(LEDRed, LEDGreen, LEDBlue), 0, 5);
             LEDs.show();
           }else{
             LEDs.clear();
@@ -342,7 +359,7 @@ void loop() {
         }
 
       }else {
-        LEDs.fill(LEDs.Color(LEDRed, LEDGreen, LEDBlue), 0, 4);
+        LEDs.fill(LEDs.Color(LEDRed, LEDGreen, LEDBlue), 0, 5);
         LEDs.show();
       }
 
@@ -363,10 +380,7 @@ void loop() {
       AkkuValue = aAkkuByte + (bAkkuByte << 8); 
 
       yCharacteristic.setValue(AkkuValue);
-/*      Serial.print("AkkuValue: ");
-      Serial.println(AkkuValue);
-      Serial.print("Chaacter: ");
-      Serial.println(yCharacteristic.value()); */
+
      
       state = Bluetooth;
     break;
@@ -375,6 +389,14 @@ void loop() {
 
     case OffMode: // Energiesparmodus (Wenn ball nicht in betrieb Per handy einstellbar)
       // entweder das oder das andere (außer bluetooth);  entweder nur bluetooth an oder nur sensoren 
+
+      LEDs.clear();
+      LEDs.setBrightness(0);
+      LEDs.show();
+
+      stopPWM(pwm, Tone_Pin);
+
+
       //BLE Programm 
       BLE.stopAdvertise();//damit es immer neustartet es beendet sich selbst sonst
       BLE.advertise();
@@ -397,72 +419,80 @@ void loop() {
 
         //Prüfziffer berechnen 
           pruefziffer = 0;
-          pruefziffer += bByte * 3;
-          pruefziffer += cByte * 1;
-          pruefziffer += dByte * 3;
+          pruefziffer += bByte * 1;
+          pruefziffer += cByte * 3;
+          pruefziffer += dByte * 1;
           
           pruefziffer = 9 - (pruefziffer % 10); 
 
-        //überprüfung 
-          if(aByteAr[0] == pruefziffer){
-            
-          //Switch Welche eingabe 
 
-            switch((aByteAr[2]*10 + aByteAr[1])){
-              default:
-                Serial.println("Switch Error");
+          if(xCharact > 3){
+            //Serial.println("Wert einlesen");
+          //überprüfung 
+            if(aByteAr[0] == pruefziffer){
+              
+            //Switch Welche eingabe 
 
-                break; 
-              case 0: 
-
-                if(bByte == 0){
-                  state = OffMode; 
-                }else{
-                  state = Sensor;
-                }
+              switch((aByteAr[2]*10 + aByteAr[1])){
+                default:
+                  Serial.println("Switch Error");
 
                 break; 
-              case 1:
+                case 0: 
 
-                Volume = bByte;
-                FreqStill = cByte;
-                FreqMov = dByte;
+                  if(bByte == 0){
+                    state = OffMode; 
+                  }else{
+                    state = Sensor;
+                  }
 
-                break;
-              case 2:
-                
-                Beep = bByte;         // on/off
-                BeepStill = cByte;
-                BeepMov = dByte;
+                break; 
+                case 1:
 
-                break;
-              case 3:
-
-                LEDRedStill = bByte;
-                LEDGreenStill = cByte;
-                LEDBlueStill = dByte;
+                  Volume = bByte;
+                  FreqStill = cByte;
+                  FreqMov = dByte;
 
                 break;
-              case 4:
-
-                LEDRedMov = bByte;
-                LEDGreenMov = cByte;
-                LEDBlueMov = dByte;
-
-                break;
-              case 5:
-
-                Brightness = bByte;
-                LEDFlashing = cByte;
-                LEDFlashFreq = dByte;
+                case 2:
+                  
+                  Beep = bByte;         // on/off
+                  BeepStill = cByte;
+                  BeepMov = dByte;
 
                 break;
+                case 3:
+
+                  LEDRedStill = bByte;
+                  LEDGreenStill = cByte;
+                  LEDBlueStill = dByte;
+
+                break;
+                case 4:
+
+                  LEDRedMov = bByte;
+                  LEDGreenMov = cByte;
+                  LEDBlueMov = dByte;
+
+                break;
+                case 5:
+
+                  Brightness = bByte;
+                  LEDFlashing = cByte;
+                  LEDFlashFreq = dByte;
+
+                break;
+              }
+              xCharacteristic.setValue(1);
+              //Serial.println("Pruefziffer richtig");
+
+            }else{
+              Serial.print(pruefziffer);
+              Serial.println(aByteAr[0]);
+              Serial.println("Pruefziffer falsch");
+              
+              xCharacteristic.setValue(2);
             }
-            xCharacteristic.setValue(1);
-
-          }else{
-            Serial.println("Pruefziffer falsch");
-            xCharacteristic.setValue(2);
           }
 
       }
@@ -478,17 +508,17 @@ void loop() {
    // BLE Tests outputs  
    
 
-    Serial.println();
-    Serial.print("X: ");
+ //   Serial.println();
+  /*  Serial.print("X: ");
     Serial.println(xCharact);
 
     Serial.print("Pruefziffer: ");
     Serial.println(pruefziffer);
-
+*/
     //Byte auslesen test
- //   Serial.print("State: ");
- //   Serial.println(state);
-    Serial.print("Volume: ");
+    //Serial.print("State: ");
+   //Serial.println(state);
+/*    Serial.print("Volume: ");
     Serial.println(Volume);
     Serial.print("Beep: ");
     Serial.println(Beep);
@@ -500,6 +530,20 @@ void loop() {
     Serial.println(Brightness);
     Serial.print("BLE connected: ");
     Serial.println( BLE.connected());
+*/
+/*
+    Serial.print("Red: ");
+    Serial.println(LEDRed);
+    Serial.print("Green: ");
+    Serial.println(LEDGreen);
+    Serial.print("Blue: ");
+    Serial.println(LEDBlue);
+    Serial.print("Green Still: ");
+    Serial.println(LEDGreenStill);
+    Serial.print("Green Moving: ");
+    Serial.println(LEDGreenMov);
+
+*/
 
 
 
