@@ -314,19 +314,19 @@ void loop() {
         }else{
           if(millis() > (ToneTime + BeepSound*25)){
             ToneTime = millis();
-            Serial.print("Beep: ");
+            ToneToggle = !ToneToggle;   
+            Serial.print("Beep: ");          
+          }
+
             switch(ToneToggle){
               case 0: 
               setPWM(pwm, Tone_Pin, freq, dutyCycle);//starts tone
               Serial.println("0");
-
               break;
               case 1: 
               stopPWM(pwm, Tone_Pin);  //stops tone
               Serial.println("1");
               break; 
-            }
-            ToneToggle = !ToneToggle; 
           }
         }
       }else{
