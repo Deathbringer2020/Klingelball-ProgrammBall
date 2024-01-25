@@ -46,6 +46,7 @@
 
  //Tone Defines 
   uint32_t Tone_Pin  = D3;
+  float StepsFreq = 50; 
 
  //Akku Defines
   #define AkkuRead_Pin A1
@@ -94,6 +95,8 @@
   bool ToneToggle = 0;
   unsigned long ToneTime = 0;
   int BeepSound;
+  float OldFreq; 
+  
 
  //LED Variablen 
   int LEDRed, LEDGreen, LEDBlue;
@@ -303,13 +306,17 @@ void loop() {
 
     case Ton: // Anpassung Ton 
 
-      dutyCycle = Volume -1; //geht int to float ? 
+      dutyCycle = (Volume/2); //geht int to float ? 
       freq = map(accsum, 0, 4, FreqStill*70, FreqMov*70) +31;
       BeepSound = map(accsum, 0, 4, BeepStill, BeepMov);
+
       if(dutyCycle >= 1){
         if(BeepSound <= 1){
-          setPWM(pwm, Tone_Pin, freq, dutyCycle);//starts tone   
-          Serial.println("error");
+          if(OldFreq > (freq + StepsFreq) || OldFreq < (freq - StepsFreq)){
+            OldFreq = freq; 
+            setPWM(pwm, Tone_Pin, freq, dutyCycle);//starts tone   
+            Serial.println("error");
+          }
 
         }else{
           if(millis() > (ToneTime + BeepSound*25)){
@@ -320,12 +327,16 @@ void loop() {
 
             switch(ToneToggle){
               case 0: 
-              setPWM(pwm, Tone_Pin, freq, dutyCycle);//starts tone
-              Serial.println("0");
+                if(OldFreq > (freq + StepsFreq) || OldFreq < (freq - StepsFreq)){
+                  OldFreq = freq; 
+                  setPWM(pwm, Tone_Pin, freq, dutyCycle);//starts tone
+                  Serial.println("0");
+                }
               break;
               case 1: 
-              stopPWM(pwm, Tone_Pin);  //stops tone
-              Serial.println("1");
+                stopPWM(pwm, Tone_Pin);  //stops tone
+                Serial.println("1");
+                OldFreq = 0; 
               break; 
           }
         }
@@ -371,7 +382,7 @@ void loop() {
 
       Akkuvalue = analogRead(AkkuRead_Pin);
       bAkkuByte = map(Akkuvalue, 2, 3, 0 , 100);
-      bAkkuByte = 43;                             //TODO akku auslesen 
+//      bAkkuByte = 43;                             //TODO akku auslesen 
       AkkuPruefziffer = bAkkuByte * 1;
       AkkuPruefziffer = 9 - (AkkuPruefziffer % 10); 
       aAkkuByte = 60 + AkkuPruefziffer; 
