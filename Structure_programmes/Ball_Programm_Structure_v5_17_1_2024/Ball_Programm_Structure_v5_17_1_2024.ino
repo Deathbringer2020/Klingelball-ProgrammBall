@@ -111,7 +111,9 @@
   unsigned int AkkuPruefziffer = 0;
   byte aAkkuByte = 0;
   unsigned long AkkuValue = 0;
-
+  bool LowBatterieToggle = 1; 
+  int LowBatterieSwitch = 0;
+  unsigned long LowBatterieTime = 0;
       
 
 
@@ -222,10 +224,10 @@ void loop() {
 
                 if(bByte == 0){
                   state = OffMode; 
-                  Serial.println("0");
+                  //Serial.println("0");
                 }else{
                   state = Bluetooth;
-                  Serial.println("1");
+                  //Serial.println("1");
                 }
 
               break; 
@@ -305,43 +307,45 @@ void loop() {
 
 
     case Ton: // Anpassung Ton 
+      if(millis() >= LowBatterieTime + 1000){
+        Serial.println("Ton");
+        dutyCycle = (Volume/2); //geht int to float ? 
+        freq = map(accsum, 0, 4, FreqStill*70, FreqMov*70) +31;
+        BeepSound = map(accsum, 0, 4, BeepStill, BeepMov);
 
-      dutyCycle = (Volume/2); //geht int to float ? 
-      freq = map(accsum, 0, 4, FreqStill*70, FreqMov*70) +31;
-      BeepSound = map(accsum, 0, 4, BeepStill, BeepMov);
+        if(dutyCycle >= 1){
+          if(BeepSound <= 1){
+            if(OldFreq > (freq + StepsFreq) || OldFreq < (freq - StepsFreq)){
+              OldFreq = freq; 
+              setPWM(pwm, Tone_Pin, freq, dutyCycle);//starts tone   
+              Serial.println("error");
+            }
 
-      if(dutyCycle >= 1){
-        if(BeepSound <= 1){
-          if(OldFreq > (freq + StepsFreq) || OldFreq < (freq - StepsFreq)){
-            OldFreq = freq; 
-            setPWM(pwm, Tone_Pin, freq, dutyCycle);//starts tone   
-            Serial.println("error");
+          }else{
+            if(millis() > (ToneTime + BeepSound*25)){
+              ToneTime = millis();
+              ToneToggle = !ToneToggle;   
+              //Serial.print("Beep: ");          
+            }
+
+              switch(ToneToggle){
+                case 0: 
+                  if(OldFreq > (freq + StepsFreq) || OldFreq < (freq - StepsFreq)){
+                    OldFreq = freq; 
+                    setPWM(pwm, Tone_Pin, freq, dutyCycle);//starts tone
+                    //Serial.println("0");
+                  }
+                break;
+                case 1: 
+                  stopPWM(pwm, Tone_Pin);  //stops tone
+                  //Serial.println("1");
+                  OldFreq = 0; 
+                break; 
+            }
           }
-
         }else{
-          if(millis() > (ToneTime + BeepSound*25)){
-            ToneTime = millis();
-            ToneToggle = !ToneToggle;   
-            Serial.print("Beep: ");          
-          }
-
-            switch(ToneToggle){
-              case 0: 
-                if(OldFreq > (freq + StepsFreq) || OldFreq < (freq - StepsFreq)){
-                  OldFreq = freq; 
-                  setPWM(pwm, Tone_Pin, freq, dutyCycle);//starts tone
-                  Serial.println("0");
-                }
-              break;
-              case 1: 
-                stopPWM(pwm, Tone_Pin);  //stops tone
-                Serial.println("1");
-                OldFreq = 0; 
-              break; 
-          }
+          stopPWM(pwm, Tone_Pin);  //stops tone
         }
-      }else{
-        stopPWM(pwm, Tone_Pin);  //stops tone
       }
       
 
@@ -349,31 +353,32 @@ void loop() {
     break;
 
     case LED: // Anpassung LEDs 
+      if(millis() >= LowBatterieTime + 1000){
+        Serial.println("LED");
+        LEDRed = map(accsum, 0, 4, LEDRedStill, LEDRedMov);
+        LEDGreen = map(accsum, 0, 4, LEDGreenStill, LEDGreenMov);
+        LEDBlue = map(accsum, 0, 4, LEDBlueStill, LEDBlueMov);
 
-      LEDRed = map(accsum, 0, 4, LEDRedStill, LEDRedMov);
-      LEDGreen = map(accsum, 0, 4, LEDGreenStill, LEDGreenMov);
-      LEDBlue = map(accsum, 0, 4, LEDBlueStill, LEDBlueMov);
-
-      LEDs.setBrightness(Brightness);
+        LEDs.setBrightness(Brightness);
 
 
-      if(LEDFlashing == 1){
-        if(millis() >= LEDFlashTime + LEDFlashFreq * 1){
-          LEDFlashOF = !LEDFlashOF;
-          if(LEDFlashOF){
-            LEDs.fill(LEDs.Color(LEDRed, LEDGreen, LEDBlue), 0, 5);
-            LEDs.show();
-          }else{
-            LEDs.clear();
-            LEDs.show();
+        if(LEDFlashing == 1){
+          if(millis() >= LEDFlashTime + LEDFlashFreq * 1){
+            LEDFlashOF = !LEDFlashOF;
+            if(LEDFlashOF){
+              LEDs.fill(LEDs.Color(LEDRed, LEDGreen, LEDBlue), 0, 5);
+              LEDs.show();
+            }else{
+              LEDs.clear();
+              LEDs.show();
+            }
           }
+
+        }else {
+          LEDs.fill(LEDs.Color(LEDRed, LEDGreen, LEDBlue), 0, 5);
+          LEDs.show();
         }
-
-      }else {
-        LEDs.fill(LEDs.Color(LEDRed, LEDGreen, LEDBlue), 0, 5);
-        LEDs.show();
       }
-
 
       state = Akku;
     break; 
@@ -381,8 +386,11 @@ void loop() {
     case Akku:// Akkustand (LEDs und Ton aus)
 
       Akkuvalue = analogRead(AkkuRead_Pin);
-      bAkkuByte = map(Akkuvalue, 2, 3, 0 , 100);
-//      bAkkuByte = 43;                             //TODO akku auslesen 
+      bAkkuByte = map(Akkuvalue, 600, 900, 0 , 100);     //noch im ausgeschaltenem modus implementieren 
+      if(Akkuvalue < 600){
+        bAkkuByte = 0; 
+      }
+
       AkkuPruefziffer = bAkkuByte * 1;
       AkkuPruefziffer = 9 - (AkkuPruefziffer % 10); 
       aAkkuByte = 60 + AkkuPruefziffer; 
@@ -391,6 +399,59 @@ void loop() {
       AkkuValue = aAkkuByte + (bAkkuByte << 8); 
 
       yCharacteristic.setValue(AkkuValue);
+
+      if(bAkkuByte < 10 && LowBatterieToggle){
+
+        if(millis() >= LowBatterieTime + 750){
+          LowBatterieTime = millis();
+          Serial.println("L ");
+
+          switch(LowBatterieSwitch){
+            case 0: 
+              setPWM(pwm, Tone_Pin, 2000, 50);
+              LEDs.fill(LEDs.Color(255, 0, 0), 0, 5);
+              LEDs.show();
+              LowBatterieSwitch = 1; 
+            break; 
+            case 1:
+              stopPWM(pwm, Tone_Pin);  //stops tone
+              LEDs.clear();
+              LEDs.show();
+              LowBatterieSwitch = 2; 
+            break;
+            case 2: 
+              setPWM(pwm, Tone_Pin, 2000, 50);
+              LEDs.fill(LEDs.Color(255, 0, 0), 0, 5);
+              LEDs.show();
+              LowBatterieSwitch = 3; 
+            break; 
+            case 3:
+              stopPWM(pwm, Tone_Pin);  //stops tone
+              LEDs.clear();
+              LEDs.show();
+              LowBatterieSwitch = 4; 
+            break;
+            case 4: 
+              setPWM(pwm, Tone_Pin, 2000, 50);
+              LEDs.fill(LEDs.Color(255, 0, 0), 0, 5);
+              LEDs.show();
+              LowBatterieSwitch = 5; 
+            break; 
+            case 5:
+              stopPWM(pwm, Tone_Pin);  //stops tone
+              LEDs.clear();
+              LEDs.show();
+              LowBatterieSwitch = 0; 
+              LowBatterieToggle = 0;
+              Serial.println("ENde");
+            break;
+          }
+        }
+
+      }else if(bAkkuByte > 20 && !LowBatterieToggle){
+        LowBatterieToggle = 1;
+        Serial.println("Begin");
+      }
 
      
       state = Bluetooth;
@@ -505,6 +566,21 @@ void loop() {
               xCharacteristic.setValue(2);
             }
           }
+
+        Akkuvalue = analogRead(AkkuRead_Pin);
+        bAkkuByte = map(Akkuvalue, 600, 900, 0 , 100);     //noch im ausgeschaltenem modus implementieren 
+        if(Akkuvalue < 600){
+          bAkkuByte = 0; 
+        }
+
+        AkkuPruefziffer = bAkkuByte * 1;
+        AkkuPruefziffer = 9 - (AkkuPruefziffer % 10); 
+        aAkkuByte = 60 + AkkuPruefziffer; 
+
+        AkkuValue = 0x0;
+        AkkuValue = aAkkuByte + (bAkkuByte << 8); 
+
+        yCharacteristic.setValue(AkkuValue);
 
       }
 
