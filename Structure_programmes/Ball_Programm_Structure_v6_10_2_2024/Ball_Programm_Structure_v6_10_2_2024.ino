@@ -40,7 +40,7 @@
 
  //LED Defines
   #define LEDPIN  4
-  #define NUMLEDs 5
+  #define NUMLEDs 16
 
   Adafruit_NeoPixel LEDs(NUMLEDs, LEDPIN, NEO_GRB + NEO_KHZ800);
 
@@ -120,14 +120,9 @@
 void setup() {
  // put your setup code here, to run once:
 
-    Serial.begin(115200);
-
  // Bluetooth Setup 
 
-  Serial.println("Starting BLE work!");
-
   if (!BLE.begin()) {
-    Serial.println("starting Bluetooth® Low Energy module failed!");
 
     while (1);
   }
@@ -152,7 +147,7 @@ void setup() {
  //Accelerator 
   
   if (!IMU.begin()) {
-    Serial.println("Failed to initialize IMU!");
+    
     while (1);
   }
 
@@ -210,7 +205,6 @@ void loop() {
 
        //überprüfung 
         if(xCharact > 3){
-         // Serial.println("Wert einlesen");
 
           if(aByteAr[0] == pruefziffer){
             
@@ -218,16 +212,14 @@ void loop() {
 
             switch((aByteAr[2]*10 + aByteAr[1])){
               default:
-                Serial.println("Switch Error");
+
               break; 
               case 0: 
 
                 if(bByte == 0){
                   state = OffMode; 
-                  //Serial.println("0");
                 }else{
                   state = Bluetooth;
-                  //Serial.println("1");
                 }
 
               break; 
@@ -269,11 +261,9 @@ void loop() {
             }
 
             xCharacteristic.setValue(1);
-            //Serial.println("Pruefziffer richtig");
-          }else{
-            Serial.println("Pruefziffer falsch");
-            xCharacteristic.setValue(2);
 
+          }else{
+            xCharacteristic.setValue(2);
 
           }
         }
@@ -308,7 +298,6 @@ void loop() {
 
     case Ton: // Anpassung Ton 
       if(millis() >= LowBatterieTime + 1000){
-        Serial.println("Ton");
         dutyCycle = (Volume/2); //geht int to float ? 
         freq = map(accsum, 0, 4, FreqStill*70, FreqMov*70) +31;
         BeepSound = map(accsum, 0, 4, BeepStill, BeepMov);
@@ -318,14 +307,12 @@ void loop() {
             if(OldFreq > (freq + StepsFreq) || OldFreq < (freq - StepsFreq)){
               OldFreq = freq; 
               setPWM(pwm, Tone_Pin, freq, dutyCycle);//starts tone   
-              Serial.println("error");
             }
 
           }else{
             if(millis() > (ToneTime + BeepSound*25)){
               ToneTime = millis();
-              ToneToggle = !ToneToggle;   
-              //Serial.print("Beep: ");          
+              ToneToggle = !ToneToggle;          
             }
 
               switch(ToneToggle){
@@ -333,12 +320,10 @@ void loop() {
                   if(OldFreq > (freq + StepsFreq) || OldFreq < (freq - StepsFreq)){
                     OldFreq = freq; 
                     setPWM(pwm, Tone_Pin, freq, dutyCycle);//starts tone
-                    //Serial.println("0");
                   }
                 break;
                 case 1: 
                   stopPWM(pwm, Tone_Pin);  //stops tone
-                  //Serial.println("1");
                   OldFreq = 0; 
                 break; 
             }
@@ -354,7 +339,6 @@ void loop() {
 
     case LED: // Anpassung LEDs 
       if(millis() >= LowBatterieTime + 1000){
-        Serial.println("LED");
         LEDRed = map(accsum, 0, 4, LEDRedStill, LEDRedMov);
         LEDGreen = map(accsum, 0, 4, LEDGreenStill, LEDGreenMov);
         LEDBlue = map(accsum, 0, 4, LEDBlueStill, LEDBlueMov);
@@ -386,9 +370,11 @@ void loop() {
     case Akku:// Akkustand (LEDs und Ton aus)
 
       Akkuvalue = analogRead(AkkuRead_Pin);
-      bAkkuByte = map(Akkuvalue, 600, 900, 0 , 100);     //noch im ausgeschaltenem modus implementieren 
+      bAkkuByte = map(Akkuvalue, 600, 800, 0 , 100);     //noch im ausgeschaltenem modus implementieren 
       if(Akkuvalue < 600){
         bAkkuByte = 0; 
+      }else if(Akkuvalue > 800){
+        bAkkuByte = 100;
       }
 
       AkkuPruefziffer = bAkkuByte * 1;
@@ -404,7 +390,6 @@ void loop() {
 
         if(millis() >= LowBatterieTime + 750){
           LowBatterieTime = millis();
-          Serial.println("L ");
 
           switch(LowBatterieSwitch){
             case 0: 
@@ -443,14 +428,12 @@ void loop() {
               LEDs.show();
               LowBatterieSwitch = 0; 
               LowBatterieToggle = 0;
-              Serial.println("ENde");
             break;
           }
         }
 
       }else if(bAkkuByte > 20 && !LowBatterieToggle){
         LowBatterieToggle = 1;
-        Serial.println("Begin");
       }
 
      
@@ -499,7 +482,7 @@ void loop() {
 
 
           if(xCharact > 3){
-            //Serial.println("Wert einlesen");
+
           //überprüfung 
             if(aByteAr[0] == pruefziffer){
               
@@ -507,7 +490,6 @@ void loop() {
 
               switch((aByteAr[2]*10 + aByteAr[1])){
                 default:
-                  Serial.println("Switch Error");
 
                 break; 
                 case 0: 
@@ -556,21 +538,19 @@ void loop() {
                 break;
               }
               xCharacteristic.setValue(1);
-              //Serial.println("Pruefziffer richtig");
 
-            }else{
-              Serial.print(pruefziffer);
-              Serial.println(aByteAr[0]);
-              Serial.println("Pruefziffer falsch");
-              
+            }else{              
               xCharacteristic.setValue(2);
+
             }
           }
 
         Akkuvalue = analogRead(AkkuRead_Pin);
-        bAkkuByte = map(Akkuvalue, 600, 900, 0 , 100);     //noch im ausgeschaltenem modus implementieren 
+        bAkkuByte = map(Akkuvalue, 600, 800, 0 , 100);     //noch im ausgeschaltenem modus implementieren 
         if(Akkuvalue < 600){
           bAkkuByte = 0; 
+        } else if(Akkuvalue > 800){
+          bAkkuByte = 100;
         }
 
         AkkuPruefziffer = bAkkuByte * 1;
@@ -587,52 +567,7 @@ void loop() {
     break; 
 
 
-
   }
-
-  //Tests von Variablen 
- 
-   // BLE Tests outputs  
-   
-
- //   Serial.println();
-  /*  Serial.print("X: ");
-    Serial.println(xCharact);
-
-    Serial.print("Pruefziffer: ");
-    Serial.println(pruefziffer);
-*/
-    //Byte auslesen test
-    //Serial.print("State: ");
-   //Serial.println(state);
-   Serial.println();
-    Serial.print("Volume: ");
-    Serial.println(Volume);
-    Serial.print("Beep: ");
-    Serial.println(Beep);
-    Serial.print("LED Still: "); 
-    Serial.println(LEDRedStill);
-    Serial.print("Mov: "); 
-    Serial.println(LEDRedMov);
-    Serial.print("Brightness: ");
-    Serial.println(Brightness);
-    Serial.print("BLE connected: ");
-    Serial.println( BLE.connected());
-
-
-    Serial.print("Red: ");
-    Serial.println(LEDRed);
-    Serial.print("Green: ");
-    Serial.println(LEDGreen);
-    Serial.print("Blue: ");
-    Serial.println(LEDBlue);
-    Serial.print("Green Still: ");
-    Serial.println(LEDGreenStill);
-    Serial.print("Green Moving: ");
-    Serial.println(LEDGreenMov);
-
-
-
 
 
 }
