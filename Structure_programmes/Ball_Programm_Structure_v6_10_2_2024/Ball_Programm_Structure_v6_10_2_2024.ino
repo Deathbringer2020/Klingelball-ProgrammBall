@@ -69,13 +69,13 @@
 
  //Berechungs Bariablen 
   
-  byte Volume = 100;
-  byte FreqStill = 20;
-  byte FreqMov = 200;
+  byte Volume = 0;
+  byte FreqStill = 0;
+  byte FreqMov = 0;
   bool Beep = 0;         // on/off
-  byte BeepStill = 70;
+  byte BeepStill = 0;
   byte BeepMov = 0;
-  byte LEDRedStill = 255;
+  byte LEDRedStill = 0;
   byte LEDGreenStill = 255;
   byte LEDBlueStill = 0;
   byte LEDRedMov = 0;
@@ -96,6 +96,7 @@
   unsigned long ToneTime = 0;
   int BeepSound;
   float OldFreq; 
+  float OlddutyCycle;
   
 
  //LED Variablen 
@@ -306,13 +307,15 @@ void loop() {
           if(BeepSound <= 1){
             if(OldFreq > (freq + StepsFreq) || OldFreq < (freq - StepsFreq)){
               OldFreq = freq; 
+              OlddutyCycle = dutyCycle;
               setPWM(pwm, Tone_Pin, freq, dutyCycle);//starts tone   
             }
 
           }else{
             if(millis() > (ToneTime + BeepSound*25)){
               ToneTime = millis();
-              ToneToggle = !ToneToggle;          
+              ToneToggle = !ToneToggle; 
+              OlddutyCycle = dutyCycle;   
             }
 
               switch(ToneToggle){
@@ -320,14 +323,20 @@ void loop() {
                   if(OldFreq > (freq + StepsFreq) || OldFreq < (freq - StepsFreq)){
                     OldFreq = freq; 
                     setPWM(pwm, Tone_Pin, freq, dutyCycle);//starts tone
+                    OlddutyCycle = dutyCycle;
                   }
                 break;
                 case 1: 
                   stopPWM(pwm, Tone_Pin);  //stops tone
                   OldFreq = 0; 
+                  OlddutyCycle = dutyCycle;
                 break; 
             }
           }
+          if(OlddutyCycle +1 < dutyCycle || OlddutyCycle -1 > dutyCycle){
+            setPWM(pwm, Tone_Pin, freq, dutyCycle);
+          }
+
         }else{
           stopPWM(pwm, Tone_Pin);  //stops tone
         }
@@ -370,10 +379,10 @@ void loop() {
     case Akku:// Akkustand (LEDs und Ton aus)
 
       Akkuvalue = analogRead(AkkuRead_Pin);
-      bAkkuByte = map(Akkuvalue, 600, 800, 0 , 100);     //noch im ausgeschaltenem modus implementieren 
+      bAkkuByte = map(Akkuvalue, 620, 930, 0 , 100);     //noch im ausgeschaltenem modus implementieren 
       if(Akkuvalue < 600){
         bAkkuByte = 0; 
-      }else if(Akkuvalue > 800){
+      }else if(Akkuvalue > 930){
         bAkkuByte = 100;
       }
 
@@ -386,7 +395,7 @@ void loop() {
 
       yCharacteristic.setValue(AkkuValue);
 
-      if(bAkkuByte < 10 && LowBatterieToggle){
+      if(bAkkuByte < 20 && LowBatterieToggle){
 
         if(millis() >= LowBatterieTime + 750){
           LowBatterieTime = millis();
@@ -426,14 +435,51 @@ void loop() {
               stopPWM(pwm, Tone_Pin);  //stops tone
               LEDs.clear();
               LEDs.show();
+              LowBatterieSwitch = 6; 
+            break;
+            case 6: 
+              setPWM(pwm, Tone_Pin, 2000, 50);
+              LEDs.fill(LEDs.Color(255, 0, 0), 0, NUMLEDs);
+              LEDs.show();
+              LowBatterieSwitch = 7; 
+            break; 
+            case 7:
+              stopPWM(pwm, Tone_Pin);  //stops tone
+              LEDs.clear();
+              LEDs.show();
+              LowBatterieSwitch = 8; 
+            break;
+            case 8: 
+              setPWM(pwm, Tone_Pin, 2000, 50);
+              LEDs.fill(LEDs.Color(255, 0, 0), 0, NUMLEDs);
+              LEDs.show();
+              LowBatterieSwitch = 9; 
+            break; 
+            case 9:
+              stopPWM(pwm, Tone_Pin);  //stops tone
+              LEDs.clear();
+              LEDs.show();
+              LowBatterieSwitch = 10; 
+            break;
+            case 10: 
+              setPWM(pwm, Tone_Pin, 2000, 50);
+              LEDs.fill(LEDs.Color(255, 0, 0), 0, NUMLEDs);
+              LEDs.show();
+              LowBatterieSwitch = 11; 
+            break; 
+            case 11:
+              stopPWM(pwm, Tone_Pin);  //stops tone
+              LEDs.clear();
+              LEDs.show();
               LowBatterieSwitch = 0; 
               LowBatterieToggle = 0;
             break;
           }
         }
 
-      }else if(bAkkuByte > 20 && !LowBatterieToggle){
+      }else if(bAkkuByte > 30){
         LowBatterieToggle = 1;
+        LowBatterieSwitch = 0; 
       }
 
      
@@ -546,10 +592,10 @@ void loop() {
           }
 
         Akkuvalue = analogRead(AkkuRead_Pin);
-        bAkkuByte = map(Akkuvalue, 600, 800, 0 , 100);     //noch im ausgeschaltenem modus implementieren 
+        bAkkuByte = map(Akkuvalue, 620, 930, 0 , 100);     //noch im ausgeschaltenem modus implementieren 
         if(Akkuvalue < 600){
           bAkkuByte = 0; 
-        } else if(Akkuvalue > 800){
+        } else if(Akkuvalue > 930){
           bAkkuByte = 100;
         }
 
