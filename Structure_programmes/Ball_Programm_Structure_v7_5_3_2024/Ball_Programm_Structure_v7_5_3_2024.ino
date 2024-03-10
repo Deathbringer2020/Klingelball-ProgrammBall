@@ -306,15 +306,19 @@ void loop() {
 
     case Ton: // Anpassung Ton 
       if(millis() >= LowBatterieTime + 1000){
-        dutyCycle = (Volume/4); // interpolieren 
-        freq = map(accsum, 0, 4, FreqStill*60, FreqMov*60) +35;
+        dutyCycle = (Volume/10); // interpolieren 
+
         if(FreqMov >= FreqStill){
           freq = (((FreqMov - FreqStill) /4 ) * accsum + FreqStill) *60 +35;
         }else {
           freq = (((FreqStill - FreqMov) /4 ) * accsum + FreqMov) *60 +35;
         }
 
-        BeepSound = map(accsum, 0, 4, BeepStill, BeepMov);
+        if(BeepMov >= BeepStill){
+          BeepSound = ((BeepMov - BeepStill) /4 ) * accsum + BeepStill;
+        }else {
+          BeepSound = ((BeepStill - BeepMov) /4 ) * accsum + BeepMov;
+        }
 
         if(dutyCycle >= 1){
           if(BeepSound <= 1){
@@ -362,9 +366,24 @@ void loop() {
 
     case LED: // Anpassung LEDs 
       if(millis() >= LowBatterieTime + 1000){
-        LEDRed = map(accsum, 0, 4, LEDRedStill, LEDRedMov);
-        LEDGreen = map(accsum, 0, 4, LEDGreenStill, LEDGreenMov);
-        LEDBlue = map(accsum, 0, 4, LEDBlueStill, LEDBlueMov);
+
+        if(LEDRedMov >= LEDRedStill){
+          LEDRed = ((LEDRedMov - LEDRedStill) /4 ) * accsum + LEDRedStill;
+        }else {
+          LEDRed = ((LEDRedStill - LEDRedMov) /4 ) * accsum + LEDRedMov;
+        }
+
+        if(LEDGreenMov >= LEDGreenStill){
+          LEDGreen = ((LEDGreenMov - LEDGreenStill) /4 ) * accsum + LEDGreenStill;
+        }else {
+          LEDGreen = ((LEDGreenStill - LEDGreenMov) /4 ) * accsum + LEDGreenMov;
+        }
+
+        if(LEDBlueMov >= LEDBlueStill){
+          LEDBlue = ((LEDBlueMov - LEDBlueStill) /4 ) * accsum + LEDBlueStill;
+        }else {
+          LEDBlue = ((LEDBlueStill - LEDBlueMov) /4 ) * accsum + LEDBlueMov;
+        }
 
         LEDs.setBrightness(Brightness);
 
