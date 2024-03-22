@@ -7,15 +7,15 @@
 
 //Includes 
  //BLE Includes 
-  #include <ArduinoBLE.h>
-  #include <math.h> 
-  #include <Arduino.h>
+  #include <ArduinoBLE.h> //under ArduinoBLE 
+  #include <math.h>       //already included
+  #include <Arduino.h>    //already Included
 
  //Accelerator Include
-  #include <Arduino_LSM9DS1.h>
+  #include <Arduino_LSM9DS1.h>  //under Arduino_LSM9DS1
 
  //LED Include
-  #include <Adafruit_NeoPixel.h>
+  #include <Adafruit_NeoPixel.h> //under adafruit neopixel (by Adafruit)
 
  //Tone Include
   #if !( ARDUINO_ARCH_NRF52840 && TARGET_NAME == ARDUINO_NANO33BLE )
@@ -24,7 +24,7 @@
 
   #define _PWM_LOGLEVEL_       1
   // To be included only in main(), .ino with setup() to avoid `Multiple Definitions` Linker Error
-  #include "nRF52_MBED_PWM.h" 
+  #include "nRF52_MBED_PWM.h"     //under nRF52_MBED_PWM 
 
 
 
@@ -224,11 +224,9 @@ void loop() {
               break; 
               case 0: 
 
-                if(bByte == 0){
-                  state = OffMode; 
-                }else{
-                  state = Bluetooth;
-                }
+                if(bByte == 0) state = OffMode; 
+                else           state = Bluetooth;
+                
 
               break; 
               case 1:
