@@ -7,7 +7,7 @@ Download Arduino IDE 2.0
 
 Download in "Board Manager" Arduino Mbed OS Nano Boards  (by Arduino) 
 
-Dowload Libarys
+Dowload Libarys;
   Libarys to download: 
     ArduinoBLE
     Arduino_LSM9DS1
@@ -18,7 +18,7 @@ Open "Structure_prgrammes" under File and then Open
 
 Connect the Nano with an USB to USB-Mico Cable that can transfere data 
 
-Check if Orange LED is blinking 
+Check if Orange LED is blinking; 
   if not double click the button on the nano fast 
 
 Click on upload top left corner (strg + u) 
