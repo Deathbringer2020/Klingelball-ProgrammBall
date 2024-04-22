@@ -24,7 +24,7 @@
 
   #define _PWM_LOGLEVEL_       1
   // To be included only in main(), .ino with setup() to avoid `Multiple Definitions` Linker Error
-  #include "nRF52_MBED_PWM.h"     //under nRF52_MBED_PWM 
+  #include "nRF52_MBED_PWM.h"     //under nRF52_MBED_PWM
 
 
 
@@ -94,6 +94,9 @@
 
  //Sensor Variablen 
   float accx, accy, accz, accsum;
+  float altaccsum; 
+  unsigned long AccTime = 0; 
+
   
  //Ton Variablen 
   float dutyCycle = 50.0f;
@@ -295,7 +298,17 @@ void loop() {
 
       accsum = (accx + accy + accz) / 3; 
       
-     
+      if(accsum > altaccsum){
+        AccTime = millis(); 
+        altaccsum = accsum; 
+      }
+
+      if(AccTime + 2000 < millis()){
+        altaccsum = 0; 
+      }
+
+      accsum = altaccsum; 
+
 
       state = Ton;
     break; 
@@ -623,5 +636,12 @@ void loop() {
 
   }
 
+  if(millis() < 100) {
+    AccTime = 0; 
+    ToneTime = 0;
+    LEDFlashTime = 0;
+    LowBatterieTime = 0;
+  }
 
 }
+
